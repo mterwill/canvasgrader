@@ -18,11 +18,15 @@ class CanvasGrader(object):
     def create_assignment(self, name, points_possible, published=True):
         """Create an assignment and return its id."""
 
-        return self.session.post(self.build_url('/assignments'), data={
+        response = self.session.post(self.build_url('/assignments'), data={
             'assignment[name]': name,
             'assignment[points_possible]': points_possible,
             'assignment[published]': published,
-        }).json()['id']
+        })
+
+        response.raise_for_status() # throw error on bad request
+
+        return response.json()['id']
 
     def grade_assignment(self, assignment_id, grades):
         """Post grades for a given assignment id.
