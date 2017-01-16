@@ -25,4 +25,11 @@ pip install canvasgrader
     })
 ```
 
+Alternatively, you may place the API key in a dotfile:
+
+```bash
+$ echo "my api key" > ~/.canvasgrader
+$ chmod 600 ~/.canvasgrader
+```
+
 [key]: https://canvas.instructure.com/doc/api/file.object_ids.html

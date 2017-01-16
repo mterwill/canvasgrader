@@ -1,5 +1,6 @@
 """Simple interface with the Canvas grading API."""
 
+import os
 import requests
 
 class CanvasGrader(object):
@@ -7,10 +8,23 @@ class CanvasGrader(object):
     Currently provides ability to create assignments and upload grades.
     """
 
-    def __init__(self, base_uri, course_id, id_key, api_key):
+    def __init__(self, base_uri, course_id, id_key, api_key=None):
         self.base_uri = base_uri
         self.course_id = course_id
         self.id_key = id_key
+
+        if api_key == None:
+            # Check the user's home directory for an api key
+            path = os.path.expanduser('~/.canvasgrader')
+            if not os.path.isfile(path):
+                raise RuntimeError('Provide an API key in ~/.canvasgrader or as an argument')
+
+            # If there is one, make sure it's secure
+            if int(oct(os.stat(path).st_mode & 0777)) > 600:
+                raise RuntimeError('Tighten privileges on ~/.canvasgrader to 600 or less')
+
+            with open(path) as f:
+                api_key = f.read().strip()
 
         self.session = requests.Session()
         self.session.headers = {'Authorization': 'Bearer {}'.format(api_key)}
