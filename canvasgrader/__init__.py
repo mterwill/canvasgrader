@@ -20,7 +20,7 @@ class CanvasGrader(object):
                 raise RuntimeError('Provide an API key in ~/.canvasgrader or as an argument')
 
             # If there is one, make sure it's secure
-            if int(oct(os.stat(path).st_mode & 0777)) > 600:
+            if int(oct(os.stat(path).st_mode)[-3:]) > 600:
                 raise RuntimeError('Tighten privileges on ~/.canvasgrader to 600 or less')
 
             with open(path) as f:
