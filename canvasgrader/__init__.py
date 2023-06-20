@@ -8,7 +8,7 @@ class CanvasGrader(object):
     Currently provides ability to create assignments and upload grades.
     """
 
-    def __init__(self, base_uri, course_id, id_key, api_key=None):
+    def __init__(self, base_uri, course_id, id_key=None, api_key=None):
         self.base_uri = base_uri
         self.course_id = course_id
         self.id_key = id_key
@@ -42,7 +42,7 @@ class CanvasGrader(object):
 
         return response.json()['id']
 
-    def grade_assignment(self, assignment_id, grades):
+    def grade_assignment(self, assignment_id, grades=None, comments=None):
         """Post grades for a given assignment id.
 
         grades is a dictionary which holds grades for the given assignment_id.
@@ -53,12 +53,29 @@ class CanvasGrader(object):
         not see an error returned by the API for bad keys.
         """
 
+        def make_id_key(sid):
+            id_key = str(sid)
+            if self.id_key:
+                # canvas expects keys in this format for SIS
+                # https://canvas.instructure.com/doc/api/file.object_ids.html
+                id_key = "{id_key}:{sid}".format(
+                    id_key = self.id_key, sid = sid)
+            return id_key
+
+
         grades_for_canvas = {}
-        for sid, grade in grades.items():
-            # canvas expects keys in this format
-            k = 'grade_data[{id_key}:{sid}][posted_grade]'.format(
-                id_key=self.id_key, sid=sid)
-            grades_for_canvas[k] = grade
+
+        if grades:
+            for sid, grade in grades.items():
+                k = 'grade_data[{id_key}][posted_grade]'.format(
+                    id_key=make_id_key(sid))
+                grades_for_canvas[k] = grade
+
+        if comments:
+            for sid, comment in comments.items():
+                k = 'grade_data[{id_key}][text_comment]'.format(
+                    id_key=make_id_key(sid))
+                grades_for_canvas[k] = comment
 
         return self.session.post(
             self.build_url('/assignments/{}/submissions/update_grades'.format(assignment_id)),
